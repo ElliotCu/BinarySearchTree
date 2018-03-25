@@ -42,13 +42,22 @@ let rec delete t x = match t with
                                else Bin((c, m), lr, delete x rr);;
 
 
-let rec is_bst t = match t with
-    Empty -> true
-   |Bin((x, m), lr, rr) -> match (lr, rr) with
-                             Empty, Empty -> true
-                            |Bin((x1, m1), lr1, rr1), Bin((x2, m2), lr2, rr2) -> if (x1 > x || x2 < x) then false
-                                                                                 else is_bst lr && is_bst rr
-                            |Bin((x1, m1), lr1, rr1), Empty -> if (x1 > x ) then false
-                                                           else is_bst lr && is_bst rr
-                            |Empty, Bin((x2, m2), lr2, rr2) -> if (x2 < x) then false
-                                                           else is_bst lr && is_bst rr;;
+let rec aux t min max=match t with
+       |Empty->true
+       |Bin((c,m),l,r)-> if (c < min || c > max) then false else (aux l min (c-1)) && (aux r (c+1) max);;
+ 
+let is_bst t= aux t min_int max_int;;
+
+
+let rec max_in_tree t=
+  match t with
+  |Empty->(0,0,Empty)
+  |Bin((x,m),l,Empty)->(x,m,l)
+  |Bin((x,m),l,r)->let (v,e,a)= max_in_tree r in (v,e,Bin((x,m),l,a))
+
+let rec bst_delete t x=
+  match t with
+    Empty->Empty
+  |Bin((y,m),Empty,r) when y=x ->if m=1 then r else Bin((y,m-1),Empty, r)
+  |Bin((y,m), l, r) when y=x-> if m=1 then let (v,e,a) = max_in_tree  l in Bin((v,e), a, r) else Bin((y,m-1), l, r)
+  |Bin((y,m), l, r)->if x<y then Bin((y,m),bst_delete l x, r) else Bin((y,m), l,bst_delete r x);;
